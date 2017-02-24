@@ -1,89 +1,90 @@
-import React, { Component } from 'react';
-import './App.css';
+import React, {Component} from "react";
+import "./App.css";
 
 
-class ListEntry extends Component{
-    constructor(props){
+class Task extends Component {
+    constructor(props) {
         super(props);
-        this.state={
+        this.state = {
             task: props.task,
             date: props.date,
-            completed: false
         };
 
         this.handleChange = this.handleChange.bind(this);
     }
 
-    handleChange(event){
-        var completed = this.state.completed ? false : true;
+    handleChange(event) {
         var list = JSON.parse(localStorage.getItem('todoList'));
-        var result =[];
-        if(list !== []) {
+        var result = [];
+        var index = -1;
+
+        if (list !== []) {
             list.map(listEntry => {
-                                    console.log(listEntry.props.date);
-                console.log(this.state.date);
-                console.log(this.state.date != listEntry.props.date )
-                if(this.state.task != listEntry.props.task){
-                    console.log("Added");
-                    console.log(listEntry.props);
-                    result.push(<ListEntry task={listEntry.props.task} date={listEntry.props.date}
-                                                   completed={listEntry.props.completed}/>);
+                if (this.state.task != listEntry.props.task) {
+                    result.push(<Task task={listEntry.props.task} date={listEntry.props.date}/>);
+                } else {
+                    index = list.indexOf(listEntry);
+
                 }
             })
 
         }
-        this.props.update(result);
-        this.setState({completed: completed});
+        //this.props.update(result);
+        if (index != -1) {
+            this.props.remove(result,index);
+        }
     }
 
-    render(){
-        return(
+    render() {
+        return (
             <div className="listObject">
-                <li key={"t:"+new Date().toTimeString()}>{this.state.task}</li>
-                <li key={"d:"+new Date().toTimeString()}>{this.state.date}</li>
-                    <form>
-                        Is Completed:
-                        <input
-                            name="completed"
-                            type="checkbox"
-                            checked={this.state.completed}
-                            onChange={this.handleChange}/>
-                    </form>
+                <li key={"t:" + new Date().toTimeString()}>{this.state.task}</li>
+                <li key={"d:" + new Date().toTimeString()}>{this.state.date}</li>
+                <button onClick={this.handleChange}> Complete Task </button>
                 <p></p>
             </div>
         );
     }
 }
 
-class App extends Component{
+class App extends Component {
 
-    constructor(){
+    constructor() {
         super();
-        this.state={
-            list: JSON.parse(localStorage.getItem('todoList')) || [],
+        this.state = {
+            list: [],
             entry: ''
         };
 
+        if(localStorage.getItem('todoList') != undefined){
+            console.log("Reset");
+            this.state.list = JSON.parse(localStorage.getItem('todoList'))
+        }
+
         this.handleChange = this.handleChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.clearTasks = this.clearTasks.bind(this);
 
     }
 
-    handleChange(event){
+    handleChange(event) {
         this.setState({entry: event.target.value});
     }
 
-    handleSubmit(event){
-        var list = <ListEntry task={this.state.entry} date={new Date().toLocaleDateString()}/>;
+    handleSubmit(event) {
+        var list = <Task task={this.state.entry} date={new Date().toLocaleDateString()}/>;
         this.addToList(list);
         event.preventDefault();
     }
 
     // Updates the list
-    addToList(props){
+    addToList(props) {
 
         // Gets the current list of tasks
-        var oldList = JSON.parse(localStorage.getItem('todoList')) || [];
+        var oldList = [];
+        if(localStorage.getItem('todoList') != undefined){
+            oldList = JSON.parse(localStorage.getItem('todoList'))
+        }
         // Pushes the new task
         oldList.push(props);
         this.updateList(oldList);
@@ -93,62 +94,72 @@ class App extends Component{
         });
     }
 
-    updateList(props){
-                // Saves the new task list
-        localStorage.setItem('todoList',JSON.stringify(props))
+    updateList(props) {
+        // Saves the new task list
+        localStorage.setItem('todoList', JSON.stringify(props))
     }
 
-    removeTask(index){
+    removeTask(newList,index) {
         var list = this.state.list;
-        list.splice(index,1);
+        var result = [];
+        console.log(JSON.stringify(list));
+        for(var i = 0; i < index; i++){
+            result.push(list[i])
+        }
+        for(var i = index + 1; i < list.length; i++)
+            result.push(list[i])
+
+        console.log(JSON.stringify(result));
+        this.updateList(newList)
+        location.reload();
+        console.log(JSON.stringify(this.state.list));
+    }
+
+    clearTasks() {
+        console.log("Clear");
+        localStorage.clear();
+        if(this.state.list !== null)
         this.setState({
-            list: list
+            list: []
         })
     }
 
-    clearStorage(){
-        console.log("Clear");
-        localStorage.clear();
-    }
-
-    render(){
+    render() {
 
         var list = (this.state.list);      // Gets the list of todo tasks
-        var result =[];
+        var result = [];
         // Parses through all the elements and creates a new list entry
-        if(list !== []) {
-            list.map(function(listEntry) {
+        if (list !== []) {
+            list.map(function (listEntry) {
                 if (listEntry != undefined) {
-                    console.log(listEntry);
-                    //Entry is pushed to result which will be displaying the ListEntry object
-                    (result.push(<ListEntry task={listEntry.props.task} date={listEntry.props.date}
-                                                   completed={listEntry.props.completed}
-                                                   update={this.updateList.bind(this)}
-                    remove={this.removeTask.bind(this)}/>));
+                    //Entry is pushed to result which will be displaying the Task object
+                    (result.push(<Task task={listEntry.props.task} date={listEntry.props.date}
+                                       update={this.updateList.bind(this)}
+                                       remove={this.removeTask.bind(this)}/>));
                 }
             }.bind(this));
         }
 
-        return(
-        <div className="Window">
-            <div className="list">
-                <h1>To Do List:</h1>
-                <div className="EnterList">
-                    <form onSubmit={this.handleSubmit}>
-                        <label>
-                            Task:
-                            <input type="text" value={this.state.value} onChange={this.handleChange} />
-                        </label>
-                        <input type="submit" value="Submit"/>
-                    </form>
-                </div>
-                <button onClick={this.clearStorage}> Clear Storage </button>
-                <div className="listEntries">
-                    {result}
-                    <p> </p>
+        return (
+            <div className="Window">
+                <div className="list">
+                    <h1>To Do List:</h1>
+                    <div className="EnterList">
+                        <form onSubmit={this.handleSubmit}>
+                            <label>
+                                Task:
+                                <input type="text" value={this.state.value} onChange={this.handleChange}/>
+                            </label>
+                            <input type="submit" value="Submit"/>
+                        </form>
+                    </div>
+                    <button onClick={this.clearTasks}> Clear Storage</button>
+                    <div className="listEntries">
+                        {result}
+                        <p></p>
+                    </div>
                 </div>
             </div>
-        </div>
         );
     }
 
