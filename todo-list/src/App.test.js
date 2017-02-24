@@ -35,8 +35,9 @@ describe('Removing Tasks', () => {
         const app = shallow(<App />)
         app.instance().addToList(task.unrendered);
         expect(app.state().list[0].props.task).toEqual("Test Task");
-        app.instance().removeTask(app.state().list,1)
-        console.log(app.state().list);
+        app.instance().removeTask(app.state().list,0)
+        //console.log(app.state.list[0].length)
+        expect(app.state.list).toEqual(undefined);
     })
 
 })

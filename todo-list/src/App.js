@@ -110,7 +110,10 @@ class App extends Component {
             result.push(list[i])
 
         console.log(JSON.stringify(result));
-        this.updateList(newList)
+        this.updateList(result);
+        this.setState({
+            list: result
+        })
         location.reload();
         console.log(JSON.stringify(this.state.list));
     }
