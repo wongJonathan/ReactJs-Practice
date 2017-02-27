@@ -57,7 +57,6 @@ class App extends Component {
         };
 
         if(localStorage.getItem('todoList') != undefined){
-            console.log("Reset");
             this.state.list = JSON.parse(localStorage.getItem('todoList'))
         }
 
@@ -102,24 +101,20 @@ class App extends Component {
     removeTask(newList,index) {
         var list = this.state.list;
         var result = [];
-        console.log(JSON.stringify(list));
         for(var i = 0; i < index; i++){
             result.push(list[i])
         }
         for(var i = index + 1; i < list.length; i++)
             result.push(list[i])
 
-        console.log(JSON.stringify(result));
         this.updateList(result);
         this.setState({
             list: result
         })
         location.reload();
-        console.log(JSON.stringify(this.state.list));
     }
 
     clearTasks() {
-        console.log("Clear");
         localStorage.clear();
         if(this.state.list !== null)
         this.setState({
